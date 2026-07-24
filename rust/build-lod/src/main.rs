@@ -3,7 +3,10 @@ use std::io::{BufReader, BufWriter, Read, Write};
 
 use spark_lib::{chunk_tree, sh_clustering};
 use spark_lib::decoder::{SplatEncoding, SplatGetter, SplatReceiver};
-use spark_lib::rad::RadEncoder;
+use spark_lib::rad::{
+    RadAlphaEncoding, RadCenterEncoding, RadEncoder, RadOrientationEncoding,
+    RadRgbEncoding, RadScalesEncoding, RadShEncoding,
+};
 use spark_lib::{
     decoder::{ChunkReceiver, MultiDecoder},
     gsplat::GsplatArray,
@@ -42,6 +45,13 @@ enum BuildLodTsplat {
     Csplat,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+enum BuildLodRadPrecision {
+    #[default]
+    Quantized,
+    Full,
+}
+
 #[derive(Clone, Copy, Debug, Default)]
 enum BuildLodMethod {
     TinyLod { lod_base: f32 },
@@ -67,6 +77,7 @@ struct BuildLodOptions {
     cluster_sh: Option<usize>,
     cluster_sh_cpu: bool,
     cluster_sh_f16: Option<bool>,
+    rad_precision: BuildLodRadPrecision,
 }
 
 fn read_file_chunks(filename: &str, decoder: &mut impl ChunkReceiver) -> anyhow::Result<()> {
@@ -317,6 +328,19 @@ fn process_file_lod_tsplat<TS: SplatReceiver + TsplatArray + SplatGetter>(filena
     match options.output {
         BuildLodOutput::Rad | BuildLodOutput::RadChunked => {
             let mut encoder = RadEncoder::new(splats);
+            if options.rad_precision == BuildLodRadPrecision::Full {
+                encoder = encoder
+                    .with_center_encoding(RadCenterEncoding::F32)
+                    .with_alpha_encoding(RadAlphaEncoding::F32)
+                    .with_rgb_encoding(RadRgbEncoding::F32)
+                    .with_scales_encoding(RadScalesEncoding::F32)
+                    .with_orientation_encoding(RadOrientationEncoding::F32)
+                    .with_sh_encoding(RadShEncoding::F32);
+                description.insert(
+                    "rad_precision".to_string(),
+                    serde_json::Value::String("full-f32".to_string()),
+                );
+            }
             if let Some(sh_clusters) = sh_clusters {
                 encoder = encoder.with_sh_clusters(sh_clusters);
             }
@@ -409,6 +433,7 @@ fn show_usage_exit() {
     eprintln!("  [--tiny-lod[=<base>]] [--bhatt-lod[=<base>]]    // Use tiny-lod (default base 1.5) or bhatt-lod (default base 1.75) LoD method");
     eprintln!("  [--max-sh=<max-sh>]                             // Set maximum SH degree (default 3)");
     eprintln!("  [--rad] [--rad-chunked] [--spz] [--spz-chunked] // Output RAD (+chunked) or SPZ (+chunked) output files");
+    eprintln!("  [--rad-full-precision]                         // Preserve F32 Gaussian fields in RAD output");
     eprintln!("  [--min-box=<x>,<y>,<z>]                         // Crop input file to minimum bounding coord");
     eprintln!("  [--max-box=<x>,<y>,<z>]                         // Crop input file to maximum bounding coord");
     eprintln!("  [--within-dist=<x>,<y>,<z>,<radius>]            // Crop input file to within radius of a point");
@@ -512,6 +537,13 @@ fn main() {
         if arg == "--rad-chunked" {
             options.output = BuildLodOutput::RadChunked;
             println!("Using --rad-chunked: Chunk RAD file output");
+            continue;
+        }
+        if arg == "--rad-full-precision" {
+            options.rad_precision = BuildLodRadPrecision::Full;
+            println!(
+                "Using --rad-full-precision: preserve F32 Gaussian fields"
+            );
             continue;
         }
         if arg == "--spz" {
