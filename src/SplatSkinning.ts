@@ -414,11 +414,15 @@ function applyGsplatSkinning(
       return unindentLines(`
         ${gsplat} = ${inputs.gsplat};
         if (isGsplatActive(${gsplat}.flags)) {
+          vec3 center = ${gsplat}.center;
+          vec4 quaternion = ${gsplat}.quaternion;
           applyGsplatSkinning(
             ${skinning}.numSplats, ${skinning}.numBones,
             ${skinning}.skinTexture, ${skinning}.boneTexture,
-            ${gsplat}.index, ${gsplat}.center, ${gsplat}.quaternion
+            ${gsplat}.index, center, quaternion
           );
+          ${gsplat}.center = center;
+          ${gsplat}.quaternion = quaternion;
         }
       `);
     },
@@ -559,11 +563,17 @@ function applyCovSplatDQSkinning(
       return unindentLines(`
         ${covsplat} = ${inputs.covsplat};
         if (isCovSplatActive(${covsplat}.flags)) {
+          vec3 center = ${covsplat}.center;
+          vec3 xxyyzz = ${covsplat}.xxyyzz;
+          vec3 xyxzyz = ${covsplat}.xyxzyz;
           applyCovSplatDQSkinning(
             ${skinning}.numSplats, ${skinning}.numBones,
             ${skinning}.skinTexture, ${skinning}.boneTexture,
-            ${covsplat}.index, ${covsplat}.center, ${covsplat}.xxyyzz, ${covsplat}.xyxzyz
+            ${covsplat}.index, center, xxyyzz, xyxzyz
           );
+          ${covsplat}.center = center;
+          ${covsplat}.xxyyzz = xxyyzz;
+          ${covsplat}.xyxzyz = xyxzyz;
         }
       `);
     },
@@ -589,11 +599,17 @@ function applyCovSplatLBSkinning(
       return unindentLines(`
         ${covsplat} = ${inputs.covsplat};
         if (isCovSplatActive(${covsplat}.flags)) {
+          vec3 center = ${covsplat}.center;
+          vec3 xxyyzz = ${covsplat}.xxyyzz;
+          vec3 xyxzyz = ${covsplat}.xyxzyz;
           applyCovSplatLBSkinning(
             ${skinning}.numSplats, ${skinning}.numBones,
             ${skinning}.skinTexture, ${skinning}.boneTexture,
-            ${covsplat}.index, ${covsplat}.center, ${covsplat}.xxyyzz, ${covsplat}.xyxzyz
+            ${covsplat}.index, center, xxyyzz, xyxzyz
           );
+          ${covsplat}.center = center;
+          ${covsplat}.xxyyzz = xxyyzz;
+          ${covsplat}.xyxzyz = xyxzyz;
         }
       `);
     },

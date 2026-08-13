@@ -191,7 +191,15 @@ const defineReadPackedArray = unindent(`
   bool readPackedArray(usampler2DArray texture, int numSplats, vec4 rgbMinMaxLnScaleMinMax, int index, out Gsplat gsplat) {
     if ((index >= 0) && (index < numSplats)) {
       uvec4 packedData = texelFetch(texture, splatTexCoord(index), 0);
-      unpackSplatEncoding(packedData, gsplat.center, gsplat.scales, gsplat.quaternion, gsplat.rgba, rgbMinMaxLnScaleMinMax);
+      vec3 center;
+      vec3 scales;
+      vec4 quaternion;
+      vec4 rgba;
+      unpackSplatEncoding(packedData, center, scales, quaternion, rgba, rgbMinMaxLnScaleMinMax);
+      gsplat.center = center;
+      gsplat.scales = scales;
+      gsplat.quaternion = quaternion;
+      gsplat.rgba = rgba;
       return true;
     } else {
       return false;
@@ -340,7 +348,15 @@ const defineReadExtArrays = unindent(`
       ivec3 coord = splatTexCoord(index);
       uvec4 packed1 = texelFetch(texture1, coord, 0);
       uvec4 packed2 = texelFetch(texture2, coord, 0);
-      unpackSplatExt(packed1, packed2, gsplat.center, gsplat.scales, gsplat.quaternion, gsplat.rgba);
+      vec3 center;
+      vec3 scales;
+      vec4 quaternion;
+      vec4 rgba;
+      unpackSplatExt(packed1, packed2, center, scales, quaternion, rgba);
+      gsplat.center = center;
+      gsplat.scales = scales;
+      gsplat.quaternion = quaternion;
+      gsplat.rgba = rgba;
       gsplat.flags = all(equal(gsplat.scales, vec3(0.0, 0.0, 0.0))) ? 0u : GSPLAT_FLAG_ACTIVE;
       gsplat.index = index;
     }
@@ -405,7 +421,15 @@ const defineReadCovArrays = unindent(`
       ivec3 coord = splatTexCoord(index);
       uvec4 packed1 = texelFetch(texture1, coord, 0);
       uvec4 packed2 = texelFetch(texture2, coord, 0);
-      unpackSplatExtCov(packed1, packed2, covsplat.center, covsplat.rgba, covsplat.xxyyzz, covsplat.xyxzyz);
+      vec3 center;
+      vec4 rgba;
+      vec3 xxyyzz;
+      vec3 xyxzyz;
+      unpackSplatExtCov(packed1, packed2, center, rgba, xxyyzz, xyxzyz);
+      covsplat.center = center;
+      covsplat.rgba = rgba;
+      covsplat.xxyyzz = xxyyzz;
+      covsplat.xyxzyz = xyxzyz;
       covsplat.flags = (all(equal(covsplat.xxyyzz, vec3(0.0))) && all(equal(covsplat.xyxzyz, vec3(0.0)))) ? 0u : GSPLAT_FLAG_ACTIVE;
       gsplat.index = index;
     }

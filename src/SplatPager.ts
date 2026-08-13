@@ -697,7 +697,15 @@ export class SplatPager {
             ivec3 splatCoord = pagedSplatTexCoord(index);
             uvec4 packedData = texelFetch(${inputs.packedTexture}, splatCoord, 0);
 
-            unpackSplatEncoding(packedData, ${outputs.gsplat}.center, ${outputs.gsplat}.scales, ${outputs.gsplat}.quaternion, ${outputs.gsplat}.rgba, ${inputs.rgbMinMaxLnScaleMinMax});
+            vec3 center;
+            vec3 scales;
+            vec4 quaternion;
+            vec4 rgba;
+            unpackSplatEncoding(packedData, center, scales, quaternion, rgba, ${inputs.rgbMinMaxLnScaleMinMax});
+            ${outputs.gsplat}.center = center;
+            ${outputs.gsplat}.scales = scales;
+            ${outputs.gsplat}.quaternion = quaternion;
+            ${outputs.gsplat}.rgba = rgba;
             if ((${outputs.gsplat}.rgba.a == 0.0) || all(equal(${outputs.gsplat}.scales, vec3(0.0, 0.0, 0.0)))) {
               return;
             }
@@ -791,7 +799,15 @@ export class SplatPager {
             }
 
             uvec4 ext2 = texelFetch(${inputs.extTexture2}, splatCoord, 0);
-            unpackSplatExt(ext1, ext2, ${outputs.gsplat}.center, ${outputs.gsplat}.scales, ${outputs.gsplat}.quaternion, ${outputs.gsplat}.rgba);
+            vec3 center;
+            vec3 scales;
+            vec4 quaternion;
+            vec4 rgba;
+            unpackSplatExt(ext1, ext2, center, scales, quaternion, rgba);
+            ${outputs.gsplat}.center = center;
+            ${outputs.gsplat}.scales = scales;
+            ${outputs.gsplat}.quaternion = quaternion;
+            ${outputs.gsplat}.rgba = rgba;
             if (all(equal(${outputs.gsplat}.scales, vec3(0.0, 0.0, 0.0)))) {
               return;
             }

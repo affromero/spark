@@ -823,12 +823,16 @@ function applyGsplatRgbaDisplaceEdits(
       return unindentLines(`
         ${gsplat} = ${inputs.gsplat};
         if (isGsplatActive(${gsplat}.flags)) {
+          vec3 center = ${gsplat}.center;
+          vec4 rgba = ${gsplat}.rgba;
           for (int editIndex = 0; editIndex < ${numEdits}; ++editIndex) {
             applyPackedRgbaDisplaceEdit(
               ${rgbaDisplaceEdits}[editIndex], ${sdfArray}.sdfTexture, ${sdfArray}.numSdfs,
-              ${gsplat}.center, ${gsplat}.rgba
+              center, rgba
             );
           }
+          ${gsplat}.center = center;
+          ${gsplat}.rgba = rgba;
         }
       `);
     },
@@ -866,12 +870,16 @@ function applyCovSplatRgbaDisplaceEdits(
       return unindentLines(`
         ${covsplat} = ${inputs.covsplat};
         if (isCovSplatActive(${covsplat}.flags)) {
+          vec3 center = ${covsplat}.center;
+          vec4 rgba = ${covsplat}.rgba;
           for (int editIndex = 0; editIndex < ${numEdits}; ++editIndex) {
             applyPackedRgbaDisplaceEdit(
               ${rgbaDisplaceEdits}[editIndex], ${sdfArray}.sdfTexture, ${sdfArray}.numSdfs,
-              ${covsplat}.center, ${covsplat}.rgba
+              center, rgba
             );
           }
+          ${covsplat}.center = center;
+          ${covsplat}.rgba = rgba;
         }
       `);
     },
